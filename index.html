@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Effusion">
 <title>Réseau Effusion</title>
-<script>window.EFF_FIREBASE=true</script>
+<script>window.EFF_FIREBASE=true;window.EFF_CAN_BACKUP=false</script>
 <script src="config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,700;1,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -101,7 +101,7 @@ label{display:block;font-size:13px;font-weight:600;color:var(--mut);margin:10px 
 #gate[hidden]{display:none}.gbox{background:var(--card);color:var(--ink);border-radius:22px;padding:24px 20px;width:100%;max-width:400px}
 .gbox h1{font-size:54px;color:var(--wine);text-align:center}.gbox small{display:block;text-align:center;letter-spacing:.15em;font-weight:600;font-size:12px;color:var(--mut)}
 #gmsg{min-height:22px;font-size:14px;margin:10px 0 0}.linkbtn{background:none;border:0;color:var(--wine);font:600 14px Inter;padding:10px 0;cursor:pointer;text-decoration:underline}
-#who{margin-top:12px;font-size:13px;opacity:.95}#who button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:600 13px Inter;margin-left:6px;cursor:pointer;min-height:32px}
+#who{margin-top:10px;font-size:12px;opacity:.8;line-height:1.3}#who button{background:none;color:inherit;border:0;padding:4px 2px;font:500 12px Inter;margin-left:4px;cursor:pointer;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -197,8 +197,8 @@ function vAccueil(){
   <div class="card"><h3>Répartition par GR</h3>${S.grs.map(g=>{const n=S.people.filter(p=>p.g===g.id&&ACT.includes(p.s)).length;return `<div class="meter"><span>GR ${esc(g.nom)}</span><div><i style="width:${n/tot*100}%;background:${gcol(g.id)}"></i></div><b>${n}</b></div>`}).join('')}<p class="mini">Effectif du réseau : ${act.length} membres (hors inactifs) · ${S.people.filter(p=>p.s==='integration').length} en intégration</p></div>
   ${(()=>{const up=S.visits.filter(v=>v.st==='prevue').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);return `<div class="card"><div class="head" style="margin:0"><h3>Prochaines visites</h3><a class="btn sm ghost" href="#visites" style="text-decoration:none">Planning</a></div>${up.length?up.map(visitCard).join(''):'<p class="mini">Aucune visite planifiée.</p>'}</div>`})()}
   ${relance.length?`<div class="card"><h3>À relancer</h3><p class="mini" style="margin-top:-6px">Absents aux 3 derniers temps de pointage</p>${relance.map(row).join('')}</div>`:''}
-  <div class="note" data-act="note-edit" style="cursor:pointer"><small>POINT IMPORTANT · toucher pour modifier</small><p>${esc(S.note??NOTE)}</p></div>
-  <div class="card" style="margin-top:14px"><h3>Sauvegarde et transfert</h3><p class="mini" style="margin-top:-4px">Toutes les modifications s’enregistrent automatiquement. Copie régulièrement tes données pour en garder une sauvegarde, ou pour les transférer vers une autre version de l’appli (GitHub).</p><div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="export">Copier toutes les données</button><button class="btn ghost" data-act="import">Importer des données</button></div></div>`}
+  <div class="note" data-act="note-edit" style="cursor:pointer"><small>POINT IMPORTANT · toucher pour modifier</small><p>${esc(S.note??NOTE)}</p></div>${window.EFF_CAN_BACKUP===false?'':`
+  <div class="card" style="margin-top:14px"><h3>Sauvegarde et transfert</h3><p class="mini" style="margin-top:-4px">Toutes les modifications s’enregistrent automatiquement. Copie régulièrement tes données pour en garder une sauvegarde, ou pour les transférer vers une autre version de l’appli (GitHub).</p><div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="export">Copier toutes les données</button><button class="btn ghost" data-act="import">Importer des données</button></div></div>`}`}
 
 function memList(){const f=filt==='tous'?MEMB:[filt];
   const l=S.people.filter(p=>f.includes(p.s)&&p.n.toLowerCase().includes(q.toLowerCase())).sort((a,b)=>MEMB.indexOf(a.s)-MEMB.indexOf(b.s)||byName(a,b));
@@ -456,6 +456,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
   else if(a==='bdel'){if(t.dataset.ok){S.bilans=S.bilans.filter(b=>b.id!==id);close();save()}else{t.dataset.ok=1;t.textContent='Confirmer';t.style.background='#c8203f';t.style.color='#fff'}}
   else if(a==='mdel'){S.moves.splice(+t.dataset.i,1);save()}
   else if(a==='note-edit')open(`<form data-form="note"><h2>Point important</h2><label for="n-t">Texte affiché sur l’accueil</label><textarea id="n-t" name="note" rows="5">${esc(S.note??NOTE)}</textarea><div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button><button class="btn">Enregistrer</button></div></form>`);
+  else if((a==='export'||a==='import')&&window.EFF_CAN_BACKUP===false){toast('Réservé au responsable du réseau')}
   else if(a==='export')copy(JSON.stringify(S));
   else if(a==='import')open(`<form data-form="import"><h2>Importer des données</h2><p class="mini">Colle ici des données copiées avec « Copier toutes les données ». Elles remplaceront entièrement les données actuelles.</p><textarea name="json" rows="8" required></textarea><div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button><button class="btn">Remplacer les données</button></div></form>`);
   else if(a==='gr-new')grForm({nom:'',resp:''});
@@ -529,7 +530,7 @@ function main(){
   document.addEventListener('click',e=>{if(e.target.closest('#logout'))signOut(auth).then(()=>location.reload())});
   onAuthStateChanged(auth,u=>{user=u;
     if(!u){if(unsub)unsub();gate.hidden=false;who.hidden=true;return}
-    gate.hidden=true;who.hidden=false;$('#me').textContent=u.email;setSync('Chargement…');
+    gate.hidden=true;who.hidden=false;$('#me').textContent=u.email;window.EFF_CAN_BACKUP=(window.EFFUSION_ADMINS||['kentmutabazi@gmail.com']).map(x=>x.toLowerCase()).includes((u.email||'').toLowerCase());E.render();setSync('Chargement…');
     unsub=onSnapshot(collection(db,'effusion'),{includeMetadataChanges:true},snap=>{let ch=false;if(!snap.metadata.fromCache||!snap.empty)loaded=true;
       snap.docChanges().forEach(c=>{if(c.type==='removed')return;const d=c.doc.data().d;if(typeof d!=='string'||last[c.doc.id]===d)return;last[c.doc.id]=d;try{E.set(c.doc.id,JSON.parse(d));ch=true}catch(x){}});
       if(first&&!snap.metadata.fromCache){first=false;if(snap.empty)E.toast('Base vide : importe tes données (Accueil → Importer des données)')}
