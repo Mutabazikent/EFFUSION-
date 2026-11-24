@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#8e1030">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Effusion">
+<title>Réseau Effusion</title>
+<script>window.EFF_FIREBASE=true</script>
+<script src="config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,700;1,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: chaleureux, clair, outil de berger pour suivre chaque personne
+   IDEA: le programme imprimé du réseau Effusion devenu registre vivant
+   PICTURE: bandeau rouge→prune avec le wordmark EFFUSION, puis les présences en barres
+   COLOUR and TYPE: cramoisi #c8203f, vin #8e1030, prune #5b1552, crème #fff0ec; Barlow Condensed italique + Inter
+   LAYOUT: bandeau pleine largeur, onglets, cartes en colonne; barre d'onglets en bas sur téléphone */
+:root{color-scheme:light dark;--bg:light-dark(#f8f2f3,#160a10);--card:light-dark(#fff,#23111a);--ink:light-dark(#22101a,#f8ebef);--mut:light-dark(#6f5962,#c4a8b3);--line:light-dark(#ecdce1,#3b1f2b);--red:#c8203f;--wine:light-dark(#8e1030,#ff8aa0);--soft:light-dark(#fbe7ec,#3a1522);--cream:#fff0ec}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip;padding-bottom:84px}
+h1,h2,h3,.disp{font-family:"Barlow Condensed",Impact,sans-serif;font-style:italic;font-weight:800;line-height:1.05;margin:0;text-transform:uppercase}
+.hero{background:linear-gradient(115deg,#c8203f,#8e1030 48%,#5b1552);color:var(--cream);text-align:center;padding:28px 16px 30px}
+.hero small{display:block;font-size:13px;letter-spacing:.2em;font-weight:600;opacity:.9}
+.hero .r{font-family:"Barlow Condensed";font-style:italic;font-weight:700;font-size:26px;letter-spacing:.04em;color:#ffd9cf;margin-top:6px}
+.hero h1{font-size:clamp(56px,13vw,104px);color:var(--cream)}
+.hero hr{width:64px;border:0;border-top:2px solid var(--cream);opacity:.7;margin:10px auto 0}
+nav{display:flex;gap:4px;justify-content:center;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;padding:6px;overflow-x:auto;scrollbar-width:none}
+nav a{flex:1 0 62px;max-width:140px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;color:var(--mut);text-decoration:none;font-size:13px;font-weight:600;min-height:48px}
+nav a svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav a.on{color:var(--wine);background:var(--soft)}
+main{max-width:1000px;margin:0 auto;padding:20px 16px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 14px;flex-wrap:wrap}
+.head h2{font-size:34px;color:var(--wine)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.card h3{font-size:22px;margin-bottom:10px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.kpi b{display:block;font:italic 800 clamp(34px,6vw,44px)/1 "Barlow Condensed";color:var(--wine)}
+.kpi span{font-size:13px;color:var(--mut)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:180px;padding-top:22px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:13px;color:var(--mut)}
+.bar i{display:block;width:100%;max-width:46px;border-radius:8px 8px 3px 3px;background:linear-gradient(#c8203f,#5b1552);position:relative}
+.bar i::before{content:attr(data-v);position:absolute;top:-21px;left:0;right:0;text-align:center;font-style:normal;font-weight:700;color:var(--ink)}
+.bar em{font-style:normal;margin-top:6px;white-space:nowrap}
+.row{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.row:last-child{border-bottom:0}
+.av{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
+.who{flex:1}.who b{display:block;font-weight:600}.who span{font-size:13px;color:var(--mut)}
+.tag{font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--wine);white-space:nowrap}
+.tag.leader{background:#c8203f;color:#fff}.tag.futur{background:#f1b23a;color:#3a2100}.tag.rappeler{background:#f1b23a;color:#3a2100}.tag.rappele{background:light-dark(#dcefff,#12324d);color:light-dark(#0f4c81,#9fd0ff)}.tag.pas{background:light-dark(#eee,#2c2a2b);color:var(--mut)}.tag.nn{background:#1f8a4c;color:#fff}.tag.perdu{background:light-dark(#eee,#2c2a2b);color:var(--mut);text-decoration:line-through}.tag.inactif{background:light-dark(#e5e1e2,#3a3336);color:var(--mut)}.tag.invite{background:light-dark(#dcefff,#12324d);color:light-dark(#0f4c81,#9fd0ff)}.tag.integration{background:light-dark(#dff5e6,#123a22);color:light-dark(#17693a,#8fe0ab)}
+.pct{font-size:13px;font-weight:700;width:44px;text-align:right;white-space:nowrap}
+.meter{display:flex;align-items:center;gap:10px;margin:8px 0}.meter span{width:110px;font-size:14px;font-weight:600}.meter div{flex:1;height:12px;border-radius:9px;background:var(--soft);overflow:hidden}.meter div i{display:block;height:100%;border-radius:9px}.meter b{width:36px;text-align:right}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:9px 14px;font:600 14px Inter;min-height:40px;cursor:pointer}
+.chip.on{background:var(--wine);border-color:var(--wine);color:light-dark(#fff,#2a0c16)}
+.btn{border:0;border-radius:12px;padding:11px 16px;font:600 15px Inter;min-height:44px;cursor:pointer;background:var(--red);color:#fff}
+.btn.ghost{background:var(--soft);color:var(--wine)}.btn.sm{min-height:36px;padding:7px 12px;font-size:13px}
+.btn:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,nav a:focus-visible{outline:3px solid #f1b23a;outline-offset:2px}
+input,select,textarea{width:100%;font:16px Inter;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-height:44px}
+label{display:block;font-size:13px;font-weight:600;color:var(--mut);margin:10px 0 4px}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.grs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.grh{display:flex;align-items:center;justify-content:space-between;border-radius:14px;color:#fff;padding:14px;margin:-16px -16px 10px}
+.grh h3{margin:0;font-size:26px}.grh span{font:italic 800 28px "Barlow Condensed"}
+.empty{text-align:center;color:var(--mut);padding:22px 10px}
+.note{background:var(--card);border-left:0;border-radius:18px;padding:18px;border:2px solid var(--red)}
+.note small{letter-spacing:.15em;font-weight:700;color:var(--wine);font-size:12px}.note p{margin:6px 0 0;font-weight:700;color:var(--wine)}
+#ov{position:fixed;inset:0;background:rgba(20,5,12,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+#ov[hidden]{display:none}
+.sheet{background:var(--card);width:100%;max-width:620px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px 18px 26px}
+.sheet h2{font-size:30px;color:var(--wine);margin-bottom:4px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.acts .btn{flex:1}
+.tgs{display:flex;flex-wrap:wrap;gap:8px}
+.tg{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:99px;padding:8px 13px;font:500 14px Inter;min-height:40px;cursor:pointer}
+.tg.on{background:#1f8a4c;border-color:#1f8a4c;color:#fff}
+.tg.on::before{content:"✓ "}
+.gl{font-weight:700;margin:14px 0 6px;font-size:14px}
+.count{position:sticky;top:-20px;background:var(--card);padding:8px 0;font-weight:700;color:var(--wine);z-index:1}
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30}
+#toast.on{opacity:1}
+.mini{font-size:13px;color:var(--mut)}
+.rep{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;background:var(--card)}
+.rep .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.rep b.t{font-size:17px}.rep p{margin:8px 0 0;white-space:pre-wrap}
+.facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--mut);margin-top:6px}
+.nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;text-align:center}
+.nums div{background:var(--soft);border-radius:12px;padding:8px 4px}.nums b{display:block;font:italic 800 28px/1 "Barlow Condensed";color:var(--wine)}.nums span{font-size:12px;color:var(--mut)}
+.plan{display:flex;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}.plan:last-child{border-bottom:0}
+.day{flex:none;width:52px;text-align:center;border-radius:12px;background:var(--soft);color:var(--wine);padding:6px 0;line-height:1.1}.day b{display:block;font:italic 800 24px "Barlow Condensed"}.day span{font-size:12px;text-transform:uppercase}
+.day.late{background:#c8203f;color:#fff}
+.todo{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.paste{background:var(--soft);border-radius:14px;padding:10px 12px;margin-top:10px}.paste summary{cursor:pointer;font-weight:600;color:var(--wine);min-height:32px}
+@media(max-width:700px){nav{justify-content:flex-start;position:fixed;top:auto;bottom:0;left:0;right:0;border-top:1px solid var(--line);border-bottom:0;padding-bottom:max(6px,env(safe-area-inset-bottom))}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{padding:22px 12px 24px}}
+@media(min-width:701px){body{padding-bottom:20px}#toast{bottom:28px}#ov{align-items:center}.sheet{border-radius:22px}}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+#gate{position:fixed;inset:0;z-index:40;background:linear-gradient(115deg,#c8203f,#8e1030 48%,#5b1552);display:grid;place-items:center;padding:20px;overflow:auto}
+#gate[hidden]{display:none}.gbox{background:var(--card);color:var(--ink);border-radius:22px;padding:24px 20px;width:100%;max-width:400px}
+.gbox h1{font-size:54px;color:var(--wine);text-align:center}.gbox small{display:block;text-align:center;letter-spacing:.15em;font-weight:600;font-size:12px;color:var(--mut)}
+#gmsg{min-height:22px;font-size:14px;margin:10px 0 0}.linkbtn{background:none;border:0;color:var(--wine);font:600 14px Inter;padding:10px 0;cursor:pointer;text-decoration:underline}
+#who{margin-top:12px;font-size:13px;opacity:.95}#who button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:99px;padding:6px 12px;font:600 13px Inter;margin-left:6px;cursor:pointer;min-height:32px}
+</style>
+</head>
+<body>
+<div id="gate"><div class="gbox"><small>MEGACHURCH ACER NANTES · RÉSEAU</small><h1>Effusion</h1>
+<form id="gform"><label for="gmail">E-mail</label><input id="gmail" type="email" autocomplete="username" required>
+<label for="gpass">Mot de passe</label><input id="gpass" type="password" autocomplete="current-password" required>
+<button class="btn" style="width:100%;margin-top:16px">Se connecter</button><button type="button" class="linkbtn" id="gforgot">Mot de passe oublié ?</button></form>
+<p id="gmsg" role="status">Connecte-toi avec le compte créé par le responsable du réseau.</p><button type="button" class="btn ghost" id="glogout" hidden onclick="document.getElementById('logout').click()">Changer de compte</button></div></div>
+<header class="hero">
+  <small>MEGACHURCH ACER NANTES</small>
+  <div class="r">RÉSEAU</div>
+  <h1>Effusion</h1>
+  <hr>
+  <div id="who" hidden><span id="me"></span> · <span id="sync"></span><button id="logout" type="button">Déconnexion</button></div>
+</header>
+<nav id="nav">
+  <a href="#accueil" data-v="accueil"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Accueil</a>
+  <a href="#membres" data-v="membres"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M16 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-5.5"/></svg>Membres</a>
+  <a href="#invites" data-v="invites"><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6 2 0 3 .4 4 1M19 14v7M15.5 17.5h7"/></svg>Invités</a>
+  <a href="#gr" data-v="gr"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>GR</a>
+  <a href="#visites" data-v="visites"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Visites</a>
+  <a href="#evangelisation" data-v="evangelisation"><svg viewBox="0 0 24 24"><path d="M12 22V11M12 11C12 7 9 4 4 4c0 4 3 7 8 7zM12 14c0-4 3-7 8-7 0 4-3 7-8 7"/></svg>Évang.</a>
+  <a href="#bilan" data-v="bilan"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Bilan</a>
+  <a href="#presences" data-v="presences"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8.5 15l2.5 2.5 5-5"/></svg>Présences</a>
+</nav>
+<main id="app"></main>
+<div id="ov" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div id="toast" role="status"></div>
+<script type="application/json" id="data">{"seq":1,"grs":[{"id":"ben","nom":"Bénédicte","resp":""},{"id":"jor","nom":"Jordan","resp":""},{"id":"ged","nom":"Gedeon","resp":""},{"id":"axe","nom":"Axel","resp":""}],"people":[],"sessions":[],"visits":[],"evang":[],"evp":[],"bilans":[],"moves":[]}</script>
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rootClone=document.documentElement.cloneNode(true);rootClone.removeAttribute('data-theme');
+const TEMPLATE='<!DOCTYPE html>\n'+rootClone.outerHTML;
+let S=JSON.parse($('#data').textContent);
+const inClaude=!!(window.claude&&window.claude.use);
+const local=()=>{try{localStorage.setItem('effusion',JSON.stringify(S));return true}catch(e){return false}};
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+if(!inClaude&&!window.EFF_FIREBASE){try{const l=localStorage.getItem('effusion');if(l)S=JSON.parse(l)}catch(e){}}
+let art=null,artReady=!inClaude,pending=false,timer=null,readOnly=false;
+const ST={leader:'Leader',futur:'Futur leader',membre:'Membre',inactif:'Inactif',invite:'Invité',integration:'En intégration',perdu:'Parti(e)'};
+const ACT=['leader','futur','membre'];
+const TYPES=['Culte du dimanche','Réunion réseau','Réunion GR'];
+const COL=['#c8203f','#e0701f','#1f8a7a','#6b3fa0','#2f62c9','#b0306a','#7a8a1f'];
+const MEMB=['leader','futur','membre','inactif'];
+const VTYPES=['Visite physique','Appel téléphonique','Appel vidéo','Rencontre extérieure'];
+let filt='tous',ifilt='invite',q='',vtab='planning',etab='rapports',efilt='tous',eq='';
+const EST={rappeler:'À rappeler',rappele:'Rappelé(e)',pas:'Pas intéressé(e)',invite:'Devenu(e) invité(e)'};
+try{filt=localStorage.getItem('eff-f')||'tous'}catch(e){}
+
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2200)}
+function save(){if(window.EFF_REMOTE){render();window.EFF_REMOTE(S);return}render();if(!artReady||art){pending=true;clearTimeout(timer);timer=setTimeout(flush,1200)}else toast(local()?'Enregistré sur cet appareil':'Enregistrement impossible')}
+async function flush(){
+  if(!artReady)return;pending=false;
+  if(!art){local();return}
+  if(readOnly){toast('Lecture seule : modification non enregistrée');return}
+  const json=JSON.stringify(S).replace(/</g,'\\u003c');
+  const html=TEMPLATE.replace(/(<script type="application\/json" id="data">)[\s\S]*?(<\/script>)/,(m,a,b)=>a+json+b);
+  try{await art.publish(html)}catch(e){const c=String(e&&(e.code||e.message||e));
+    if(/not_granted|not_writer/.test(c)){readOnly=true;toast('Lecture seule : demande l’accès en modification')}
+    else if(!/conflict/.test(c))toast('Échec de l’enregistrement, réessaie')}
+}
+if(inClaude)window.claude.use('artifact').then(a=>{art=a;artReady=true;if(!a){try{const l=localStorage.getItem('effusion');if(l&&!pending){S=JSON.parse(l);render()}}catch(e){}}if(pending)flush()}).catch(()=>{artReady=true;if(pending)flush()});
+
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const fd=(d,o={day:'numeric',month:'short'})=>d?new Date(d+'T12:00').toLocaleDateString('fr-FR',o):'';
+const P=id=>S.people.find(p=>p.id===id);
+const G=id=>S.grs.find(g=>g.id===id);
+const gcol=id=>{const i=S.grs.findIndex(g=>g.id===id);return i<0?'#8a7a80':COL[i%COL.length]};
+const ini=n=>n.split(/[\s-]+/).filter(Boolean).map(x=>x[0]).join('').slice(0,2).toUpperCase();
+const sess=()=>[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
+const byName=(a,b)=>a.n.localeCompare(b.n,'fr');
+function rate(p){const ss=sess().slice(0,8).filter(s=>!p.v||s.date>=p.v);if(!ss.length)return null;return ss.filter(s=>s.pr.includes(p.id)).length/ss.length}
+function row(p){const r=rate(p),g=G(p.g);
+  return `<div class="row" data-act="open" data-id="${esc(p.id)}" tabindex="0"><div class="av" style="background:${gcol(p.g)}">${esc(ini(p.n))}</div><div class="who"><b>${esc(p.n)}</b><span>${g?'GR '+esc(g.nom):'Sans GR'}${p.t?' · '+esc(p.t):''}${p.by?' · invité(e) par '+esc(p.by):''}</span></div><span class="tag ${esc(p.s)}">${esc(ST[p.s]||p.s)}</span><span class="pct" title="Présence sur les 8 derniers temps">${r==null?'–':Math.round(r*100)+'%'}</span></div>`}
+
+function vAccueil(){
+  const act=S.people.filter(p=>['leader','futur','membre'].includes(p.s));
+  const ld=S.people.filter(p=>p.s==='leader'||p.s==='futur').length;
+  const inv=S.people.filter(p=>p.s==='invite'||p.s==='integration').length;
+  const ss=sess(),last=ss[0];
+  const chart=ss.slice(0,8).reverse(),mx=Math.max(1,...chart.map(s=>s.pr.length));
+  const relance=ss.length>=3?act.filter(p=>!ss.slice(0,3).some(s=>s.pr.includes(p.id))).sort(byName):[];
+  const tot=act.length||1;
+  return `<p class="mini" style="margin:0 0 10px">Tout se modifie ici : touche une personne, une visite, un rapport ou un bilan pour le changer. Les boutons « + » ajoutent.</p><div class="kpis">
+  <div class="kpi"><b>${act.length}</b><span>membres actifs</span></div>
+  <div class="kpi"><b>${ld}</b><span>leaders & futurs leaders</span></div>
+  <div class="kpi"><b>${inv}</b><span>invités & en intégration</span></div>
+  <div class="kpi"><b>${last?last.pr.length:'–'}</b><span>${last?'présents · '+esc(fd(last.date)):'aucun pointage'}</span></div></div>
+  <div class="card"><div class="head" style="margin:0"><h3>Présences récentes</h3><button class="btn sm" data-act="sess-new">+ Pointage</button></div>
+  ${chart.length?`<div class="bars">${chart.map(s=>`<div class="bar" data-act="sess" data-id="${esc(s.id)}"><i data-v="${s.pr.length}" style="height:${Math.max(4,s.pr.length/mx*100)}%"></i><em>${esc(fd(s.date))}</em></div>`).join('')}</div>`:`<p class="empty">Aucun pointage pour l’instant.<br>Après le prochain culte ou la prochaine réunion, coche les présents dans « Présences ».</p>`}</div>
+  <div class="card"><h3>Répartition par GR</h3>${S.grs.map(g=>{const n=S.people.filter(p=>p.g===g.id&&ACT.includes(p.s)).length;return `<div class="meter"><span>GR ${esc(g.nom)}</span><div><i style="width:${n/tot*100}%;background:${gcol(g.id)}"></i></div><b>${n}</b></div>`}).join('')}<p class="mini">Effectif du réseau : ${act.length} membres (hors inactifs) · ${S.people.filter(p=>p.s==='integration').length} en intégration</p></div>
+  ${(()=>{const up=S.visits.filter(v=>v.st==='prevue').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);return `<div class="card"><div class="head" style="margin:0"><h3>Prochaines visites</h3><a class="btn sm ghost" href="#visites" style="text-decoration:none">Planning</a></div>${up.length?up.map(visitCard).join(''):'<p class="mini">Aucune visite planifiée.</p>'}</div>`})()}
+  ${relance.length?`<div class="card"><h3>À relancer</h3><p class="mini" style="margin-top:-6px">Absents aux 3 derniers temps de pointage</p>${relance.map(row).join('')}</div>`:''}
+  <div class="note" data-act="note-edit" style="cursor:pointer"><small>POINT IMPORTANT · toucher pour modifier</small><p>${esc(S.note??NOTE)}</p></div>
+  <div class="card" style="margin-top:14px"><h3>Sauvegarde et transfert</h3><p class="mini" style="margin-top:-4px">Toutes les modifications s’enregistrent automatiquement. Copie régulièrement tes données pour en garder une sauvegarde, ou pour les transférer vers une autre version de l’appli (GitHub).</p><div class="acts" style="margin-top:8px"><button class="btn ghost" data-act="export">Copier toutes les données</button><button class="btn ghost" data-act="import">Importer des données</button></div></div>`}
+
+function memList(){const f=filt==='tous'?MEMB:[filt];
+  const l=S.people.filter(p=>f.includes(p.s)&&p.n.toLowerCase().includes(q.toLowerCase())).sort((a,b)=>MEMB.indexOf(a.s)-MEMB.indexOf(b.s)||byName(a,b));
+  return l.length?l.map(row).join(''):'<p class="empty">Personne dans cette catégorie.</p>'}
+function vMembres(){const c=s=>S.people.filter(p=>s==='tous'?MEMB.includes(p.s):p.s===s).length;
+  return `<div class="head"><h2>Suivi des membres</h2><button class="btn" data-act="add" data-s="membre">+ Ajouter</button></div>
+  <div class="chips">${[['tous','Tous'],['leader','Leaders'],['futur','Futurs leaders'],['membre','Membres'],['inactif','Inactifs'],['perdu','Partis']].map(([k,l])=>`<button class="chip ${filt===k?'on':''}" data-act="filt" data-f="${k}">${l} · ${c(k)}</button>`).join('')}</div>
+  <input id="q" type="search" placeholder="Rechercher un nom…" value="${esc(q)}" aria-label="Rechercher">
+  <div class="card" style="margin-top:12px" id="list">${memList()}</div><p class="mini">Le % indique la présence sur les 8 derniers pointages.</p>`}
+
+function vInvites(){const l=S.people.filter(p=>p.s===ifilt).sort((a,b)=>(b.v||'').localeCompare(a.v||''));
+  const c=s=>S.people.filter(p=>p.s===s).length;
+  return `<div class="head"><h2>Invités & intégration</h2><button class="btn" data-act="add" data-s="${ifilt}">+ ${ifilt==='invite'?'Nouvel invité':'Ajouter'}</button></div>
+  <div class="chips"><button class="chip ${ifilt==='invite'?'on':''}" data-act="ifilt" data-f="invite">Invités · ${c('invite')}</button><button class="chip ${ifilt==='integration'?'on':''}" data-act="ifilt" data-f="integration">En intégration · ${c('integration')}</button></div>
+  <div class="card">${l.length?l.map(p=>row(p)+`<div style="display:flex;gap:8px;justify-content:flex-end;padding:0 0 10px">${p.v?`<span class="mini" style="margin-right:auto;align-self:center">1re visite : ${esc(fd(p.v,{day:'numeric',month:'long',year:'numeric'}))}</span>`:''}${p.s==='invite'?`<button class="btn sm ghost" data-act="promote" data-id="${esc(p.id)}" data-to="integration">→ Intégration</button>`:`<button class="btn sm ghost" data-act="promote" data-id="${esc(p.id)}" data-to="membre">→ Devenu membre</button>`}</div>`).join(''):`<p class="empty">${ifilt==='invite'?'Aucun invité enregistré. Ajoute chaque nouvelle personne dès sa première visite.':'Personne en intégration pour le moment.'}</p>`}</div>`}
+
+function vGR(){return `<div class="head"><h2>Les GR du réseau</h2><button class="btn" data-act="gr-new">+ Nouveau GR</button></div><div class="grs">${S.grs.map(g=>{
+  const m=S.people.filter(p=>p.g===g.id&&p.s!=='perdu').sort((a,b)=>(a.id===g.resp?-1:b.id===g.resp?1:0)||MEMB.indexOf(a.s)-MEMB.indexOf(b.s)||byName(a,b));
+  const r=P(g.resp),act=m.filter(p=>ACT.includes(p.s)).length;
+  const ss=sess()[0],pr=ss?m.filter(p=>ss.pr.includes(p.id)).length:null;
+  return `<div class="card"><div class="grh" style="background:${gcol(g.id)}" data-act="gr-edit" data-id="${esc(g.id)}"><div><h3>GR ${esc(g.nom)}</h3><small>Respo : ${r?esc(r.n):'—'}</small></div><span>${act}/${m.length}</span></div>
+  ${pr!=null?`<p class="mini" style="margin:0 0 6px">${pr} présent(s) au dernier pointage</p>`:''}${m.length?m.map(row).join(''):'<p class="empty">Aucun membre.</p>'}</div>`}).join('')}</div>`}
+
+function vPres(){const ss=sess();return `<div class="head"><h2>Présences</h2><button class="btn" data-act="sess-new">+ Nouveau pointage</button></div>
+  <div class="card">${ss.length?ss.map(s=>`<div class="row" data-act="sess" data-id="${esc(s.id)}" tabindex="0"><div class="av" style="background:var(--wine);font-size:13px">${esc(fd(s.date,{day:'numeric'}))}</div><div class="who"><b>${esc(s.type)}</b><span>${esc(fd(s.date,{weekday:'long',day:'numeric',month:'long',year:'numeric'}))}</span></div><span class="tag">${s.pr.length} présents</span></div>`).join(''):'<p class="empty">Aucun pointage. Crée le premier : coche simplement les personnes présentes.</p>'}</div>`}
+
+/* ---------- Visites & évangélisation ---------- */
+const dmy=d=>d?d.split('-').reverse().join('/'):'';
+const hh=t=>t?t.replace(/^0(\d)/,'$1').replace(':00','h').replace(':','h'):'';
+const plage=(a,b)=>a?hh(a)+(b?' à '+hh(b):''):'';
+const nm=id=>{const p=P(id);return p?p.n:'?'};
+const lastVisit=id=>S.visits.filter(v=>v.to===id&&v.st==='faite').sort((a,b)=>b.date.localeCompare(a.date))[0];
+const norm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+const findP=s=>{const w=norm(s).split(/\s+/)[0];return w?S.people.find(p=>norm(p.n)===norm(s))||S.people.find(p=>norm(p.n).split(/[\s-]/)[0]===w):null};
+function visitText(v){return `🟣 *Rapport de visite*\n\n- *Visite effectuée par* : ${nm(v.by)} à ${nm(v.to)}\n- *Le* : ${dmy(v.date)}\n- *Type de visite* : ${v.type}\n- *De* : ${plage(v.h1,v.h2)}\n- *Motif de visite* : ${v.motif||''}\n\n- *Résumé de la visite* : ${v.res||''}`}
+function evText(r){return `*Rapport Évangélisation*\n\n📆 Date : ${dmy(r.date)}\n📍Lieu : ${r.lieu}\nHeure : ${hh(r.h1)}${r.h2?'-'+hh(r.h2):''}\n${r.eq||''}\n\n🔸️ Nombres de\n*semence déposées* : ${r.se||0}\n🔸️*Contacts*: ${r.co||0}\n🔸️Nouvelles naissances: ${r.na||0}\n🔸️À rappeler :\n${r.ra||'/'}`}
+function visitCard(v){const late=v.st==='prevue'&&v.date<today();
+  return `<div class="plan" data-act="vopen" data-id="${esc(v.id)}" tabindex="0"><div class="day ${late?'late':''}"><b>${esc(fd(v.date,{day:'numeric'}))}</b><span>${esc(fd(v.date,{month:'short'}))}</span></div><div class="who"><b>${esc(nm(v.to))}</b><span>${esc(v.type)}${v.h1?' · '+esc(plage(v.h1,v.h2)):''} · par ${esc(nm(v.by))}${late?' · en retard':''}</span></div></div>`}
+function vVisites(){
+  const plan=S.visits.filter(v=>v.st==='prevue').sort((a,b)=>a.date.localeCompare(b.date));
+  const done=S.visits.filter(v=>v.st==='faite').sort((a,b)=>b.date.localeCompare(a.date));
+  const lim=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+  const need=p=>!['inactif','perdu'].includes(p.s)&&!plan.some(v=>v.to===p.id)&&!(lastVisit(p.id)&&lastVisit(p.id).date>=lim);
+  const sections=[...S.grs.map(g=>({t:'GR '+g.nom,c:gcol(g.id),ids:S.people.filter(p=>p.g===g.id&&p.s!=='perdu')})),{t:'Personnes en intégration',c:'#17693a',ids:S.people.filter(p=>p.s==='integration'&&!G(p.g))},{t:'Invités',c:'#0f4c81',ids:S.people.filter(p=>p.s==='invite'&&!G(p.g))}];
+  const head=`<div class="head"><h2>Visites</h2><button class="btn" data-act="vnew">+ Planifier</button></div>
+  <div class="chips"><button class="chip ${vtab==='planning'?'on':''}" data-act="vtab" data-f="planning">Planning · ${plan.length}</button><button class="chip ${vtab==='rapports'?'on':''}" data-act="vtab" data-f="rapports">Rapports · ${done.length}</button></div>`;
+  if(vtab==='rapports')return head+`<button class="btn ghost" data-act="vrep" style="width:100%;margin-bottom:12px">+ Écrire ou coller un rapport de visite</button>`+(done.length?done.map(v=>`<div class="rep"><div class="top"><div><b class="t">${esc(nm(v.by))} → ${esc(nm(v.to))}</b><div class="facts"><span>📅 ${esc(dmy(v.date))}</span><span>${esc(v.type)}</span>${v.h1?`<span>🕐 ${esc(plage(v.h1,v.h2))}</span>`:''}${v.motif?`<span>Motif : ${esc(v.motif)}</span>`:''}</div></div><div style="display:flex;gap:6px"><button class="btn sm ghost" data-act="vcopy" data-id="${esc(v.id)}">Copier</button><button class="btn sm ghost" data-act="vopen" data-id="${esc(v.id)}">Modifier</button></div></div>${v.res?`<p>${esc(v.res)}</p>`:''}</div>`).join(''):'<p class="card empty">Aucun rapport pour l’instant. Après une visite, ouvre-la dans le planning ou colle ici le rapport WhatsApp.</p>');
+  const mo=today().slice(0,7),dm=done.filter(v=>v.date.startsWith(mo)),grOfV=v=>(P(v.to)||{}).g;
+  const stats=`<div class="kpis"><div class="kpi"><b>${dm.length}</b><span>visites effectuées ce mois</span></div><div class="kpi"><b>${plan.length}</b><span>visites planifiées</span></div><div class="kpi"><b>${done.length}</b><span>visites au total</span></div><div class="kpi"><b>${plan.filter(v=>v.date<today()).length}</b><span>en retard</span></div></div><div class="card"><h3>Visites effectuées ce mois par GR</h3>${S.grs.map(g=>{const n=dm.filter(v=>grOfV(v)===g.id).length;return `<div class="meter"><span>GR ${esc(g.nom)}</span><div><i style="width:${dm.length?n/dm.length*100:0}%;background:${gcol(g.id)}"></i></div><b>${n}</b></div>`}).join('')}<div class="meter"><span>Hors GR</span><div><i style="width:${dm.length?dm.filter(v=>!G(grOfV(v))).length/dm.length*100:0}%;background:#17693a"></i></div><b>${dm.filter(v=>!G(grOfV(v))).length}</b></div></div>`;
+  return head+stats+sections.filter(s=>s.ids.length).map(s=>{const ids=s.ids.map(p=>p.id);const pv=plan.filter(v=>ids.includes(v.to));const nv=s.ids.filter(need).sort(byName);
+    return `<div class="card"><div class="grh" style="background:${s.c}"><h3>${esc(s.t)}</h3><span>${pv.length}</span></div>
+    ${pv.length?pv.map(visitCard).join(''):'<p class="mini" style="margin:0">Aucune visite planifiée.</p>'}
+    ${nv.length?`<p class="mini" style="margin:12px 0 0">Pas visité(e)s depuis 30 jours — touche pour planifier :</p><div class="todo">${nv.map(p=>`<button class="tg" data-act="vnew" data-id="${esc(p.id)}">${esc(p.n)}</button>`).join('')}</div>`:''}</div>`}).join('')}
+
+function vEvang(){const l=[...S.evang].sort((a,b)=>b.date.localeCompare(a.date));
+  const m=today().slice(0,7),mm=l.filter(r=>r.date.startsWith(m));
+  const sum=(a,k)=>a.reduce((t,r)=>t+(+r[k]||0),0);
+  const head=`<div class="head"><h2>Évangélisation</h2><button class="btn" data-act="${etab==='personnes'?'pnew':'enew'}">+ ${etab==='personnes'?'Personne':'Rapport'}</button></div>
+  <div class="chips"><button class="chip ${etab==='rapports'?'on':''}" data-act="etab" data-f="rapports">Rapports · ${l.length}</button><button class="chip ${etab==='personnes'?'on':''}" data-act="etab" data-f="personnes">Personnes évangélisées · ${S.evp.length}</button></div>`;
+  if(etab==='personnes')return head+vEvp();
+  return head+`<div class="kpis"><div class="kpi"><b>${mm.length}</b><span>sorties ce mois</span></div><div class="kpi"><b>${sum(mm,'se')}</b><span>semences ce mois</span></div><div class="kpi"><b>${sum(mm,'co')}</b><span>contacts ce mois</span></div><div class="kpi"><b>${sum(mm,'na')}</b><span>nouvelles naissances ce mois</span></div></div>
+  ${l.length?l.map(r=>`<div class="rep"><div class="top"><div><b class="t">📍 ${esc(r.lieu)}</b><div class="facts"><span>📆 ${esc(dmy(r.date))}</span>${r.h1?`<span>🕐 ${esc(hh(r.h1))}${r.h2?'-'+esc(hh(r.h2)):''}</span>`:''}${r.eq?`<span>👥 ${esc(r.eq)}</span>`:''}</div></div><div style="display:flex;gap:6px"><button class="btn sm ghost" data-act="ecopy" data-id="${esc(r.id)}">Copier</button><button class="btn sm ghost" data-act="eopen" data-id="${esc(r.id)}">Modifier</button></div></div>
+  <div class="nums"><div><b>${+r.se||0}</b><span>semences</span></div><div><b>${+r.co||0}</b><span>contacts</span></div><div><b>${+r.na||0}</b><span>nouv. naissances</span></div></div>${r.ra?`<p><b>À rappeler :</b> ${esc(r.ra)}</p>`:''}${(()=>{const ps=S.evp.filter(x=>x.rid===r.id);return `<p><b>Personnes évangélisées : ${ps.length}</b>${ps.length?' · '+ps.map(x=>esc(x.n)).join(', '):''}</p><button class="btn sm ghost" data-act="pnew" data-id="${esc(r.id)}" style="margin-top:8px">+ Ajouter une personne évangélisée</button>`})()}</div>`).join(''):'<p class="card empty">Aucun rapport. Ajoute le premier ou colle directement un rapport WhatsApp.</p>'}
+  <p class="mini">Total depuis le début : ${l.length} sorties · ${sum(l,'se')} semences · ${sum(l,'co')} contacts · ${sum(l,'na')} nouvelles naissances</p>`}
+
+function evpList(){const l=S.evp.filter(x=>(efilt==='tous'||x.st===efilt)&&norm(x.n+' '+(x.lieu||'')).includes(norm(eq))).sort((a,b)=>b.date.localeCompare(a.date)||a.n.localeCompare(b.n,'fr'));
+  return l.length?l.map(x=>`<div class="row" data-act="popen" data-id="${esc(x.id)}" tabindex="0"><div class="av" style="background:#1f8a7a">${esc(ini(x.n))}</div><div class="who"><b>${esc(x.n)}</b><span>${esc(dmy(x.date))}${x.lieu?' · '+esc(x.lieu):''}${x.par?' · par '+esc(x.par):''}${x.t?' · '+esc(x.t):''}</span></div>${x.nn?'<span class="tag nn">Nouv. naissance</span>':''}<span class="tag ${esc(x.st)}">${esc(EST[x.st]||'')}</span></div>
+  ${x.st==='rappeler'||x.st==='rappele'?`<div style="display:flex;gap:8px;justify-content:flex-end;padding:0 0 10px;flex-wrap:wrap">${x.st==='rappeler'?`<button class="btn sm ghost" data-act="pst" data-id="${esc(x.id)}" data-to="rappele">Rappelé(e)</button>`:''}<button class="btn sm ghost" data-act="pconv" data-id="${esc(x.id)}">→ Devenu(e) invité(e)</button></div>`:''}`).join(''):'<p class="empty">Personne dans cette liste.</p>'}
+function vEvp(){const c=s=>S.evp.filter(x=>s==='tous'||x.st===s).length;const mo=today().slice(0,7);
+  return `<div class="kpis"><div class="kpi"><b>${S.evp.filter(x=>x.date.startsWith(mo)).length}</b><span>évangélisées ce mois</span></div><div class="kpi"><b>${c('rappeler')}</b><span>à rappeler</span></div><div class="kpi"><b>${S.evp.filter(x=>x.nn).length}</b><span>nouvelles naissances</span></div><div class="kpi"><b>${c('invite')}</b><span>devenues invitées</span></div></div>
+  <div class="chips">${[['tous','Toutes'],...Object.entries(EST)].map(([k,lab])=>`<button class="chip ${efilt===k?'on':''}" data-act="efilt" data-f="${k}">${lab} · ${c(k)}</button>`).join('')}</div>
+  <input id="eq" type="search" placeholder="Rechercher un nom ou un lieu…" value="${esc(eq)}" aria-label="Rechercher">
+  <div class="card" style="margin-top:12px" id="elist">${evpList()}</div>
+  <p class="mini">« Devenu(e) invité(e) » l’ajoute aussi dans l’onglet Invités pour le suivi.</p>`}
+function evpForm(x){const isNew=!x.id;
+  open(`<form data-form="evp"><h2>${isNew?'Personne évangélisée':esc(x.n)}</h2>
+  <div class="grid2"><div><label for="x-n">Prénom et nom</label><input id="x-n" name="n" required value="${esc(x.n)}"></div><div><label for="x-t">Téléphone</label><input id="x-t" name="t" type="tel" value="${esc(x.t)}"></div></div>
+  <div class="grid2"><div><label for="x-d">Date</label><input id="x-d" type="date" name="date" required value="${esc(x.date)}"></div><div><label for="x-l">Lieu</label><input id="x-l" name="lieu" value="${esc(x.lieu)}"></div></div>
+  <label for="x-p">Évangélisé(e) par</label><input id="x-p" name="par" value="${esc(x.par)}" placeholder="Alexia et Aurélia">
+  <label for="x-r">Sortie d’évangélisation</label><select id="x-r" name="rid"><option value="">Aucune</option>${opts([...S.evang].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>[r.id,dmy(r.date)+' · '+r.lieu]),x.rid)}</select>
+  <div class="grid2"><div><label for="x-s">Suivi</label><select id="x-s" name="st">${opts(Object.entries(EST),x.st)}</select></div><div><label style="display:flex;gap:8px;align-items:center;min-height:44px;margin-top:28px;color:var(--ink)"><input type="checkbox" name="nn" ${x.nn?'checked':''} style="width:22px;min-height:22px"> Nouvelle naissance</label></div></div>
+  <label for="x-no">Notes (besoin de prière, quartier, disponibilités…)</label><textarea id="x-no" name="no" rows="3">${esc(x.no)}</textarea>
+  <div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button>${isNew?'':`<button type="button" class="btn ghost" data-act="pdel" data-id="${esc(x.id)}">Supprimer</button>`}<button class="btn">Enregistrer</button></div>
+  <input type="hidden" name="id" value="${esc(x.id||'')}"></form>`)}
+const pasteBox=k=>`<details class="paste"><summary>Coller un rapport WhatsApp pour remplir automatiquement</summary><textarea id="pz" rows="6" placeholder="Colle le message ici…"></textarea><button type="button" class="btn sm" data-act="${k}" style="margin-top:8px">Remplir le formulaire</button></details>`;
+function visitForm(v){const isNew=!v.id;const ppl=[...S.people].sort(byName).map(p=>[p.id,p.n]);
+  open(`<form data-form="visit"><h2>${isNew?(v.st==='faite'?'Rapport de visite':'Planifier une visite'):(v.st==='faite'?'Rapport de visite':'Visite planifiée')}</h2>
+  ${isNew&&v.st==='faite'?pasteBox('vparse'):''}
+  <div class="grid2"><div><label for="v-by">Visite effectuée par</label><select id="v-by" name="by" required><option value="">Choisir…</option>${opts(ppl,v.by)}</select></div>
+  <div><label for="v-to">Personne visitée</label><select id="v-to" name="to" required><option value="">Choisir…</option>${opts(ppl,v.to)}</select></div></div>
+  <div class="grid2"><div><label for="v-d">Le</label><input id="v-d" type="date" name="date" required value="${esc(v.date)}"></div>
+  <div><label for="v-t">Type de visite</label><select id="v-t" name="type">${opts(VTYPES.map(t=>[t,t]),v.type)}</select></div></div>
+  <div class="grid2"><div><label for="v-h1">De</label><input id="v-h1" type="time" name="h1" value="${esc(v.h1)}"></div><div><label for="v-h2">À</label><input id="v-h2" type="time" name="h2" value="${esc(v.h2)}"></div></div>
+  <label for="v-m">Motif de visite</label><input id="v-m" name="motif" value="${esc(v.motif)}" placeholder="Prise de nouvelles, suivi, prière…">
+  <label for="v-st">État</label><select id="v-st" name="st">${opts([['prevue','Planifiée (à faire)'],['faite','Effectuée']],v.st)}</select>
+  <label for="v-r">Résumé de la visite</label><textarea id="v-r" name="res" rows="5" placeholder="À remplir après la visite">${esc(v.res)}</textarea>
+  <div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button>${isNew?'':`<button type="button" class="btn ghost" data-act="vdel" data-id="${esc(v.id)}">Supprimer</button>`}<button class="btn">Enregistrer</button></div>
+  <input type="hidden" name="id" value="${esc(v.id||'')}"></form>`)}
+function evForm(r){const isNew=!r.id;
+  open(`<form data-form="ev"><h2>Rapport évangélisation</h2>${isNew?pasteBox('eparse'):''}
+  <div class="grid2"><div><label for="e-d">Date</label><input id="e-d" type="date" name="date" required value="${esc(r.date)}"></div><div><label for="e-l">Lieu</label><input id="e-l" name="lieu" required value="${esc(r.lieu)}" placeholder="Ligne 2 (Orvault, le Cardo)"></div></div>
+  <div class="grid2"><div><label for="e-h1">Heure de début</label><input id="e-h1" type="time" name="h1" value="${esc(r.h1)}"></div><div><label for="e-h2">Heure de fin</label><input id="e-h2" type="time" name="h2" value="${esc(r.h2)}"></div></div>
+  <label for="e-eq">Équipe</label><input id="e-eq" name="eq" value="${esc(r.eq)}" placeholder="Alexia et Aurélia">
+  <div class="nums" style="text-align:left"><div><label for="e-se">Semences</label><input id="e-se" type="number" min="0" inputmode="numeric" name="se" value="${esc(r.se??0)}"></div><div><label for="e-co">Contacts</label><input id="e-co" type="number" min="0" inputmode="numeric" name="co" value="${esc(r.co??0)}"></div><div><label for="e-na">Nouv. naiss.</label><input id="e-na" type="number" min="0" inputmode="numeric" name="na" value="${esc(r.na??0)}"></div></div>
+  <label for="e-ra">À rappeler (noms, numéros…)</label><textarea id="e-ra" name="ra" rows="3">${esc(r.ra)}</textarea>
+  <div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button>${isNew?'':`<button type="button" class="btn ghost" data-act="edel" data-id="${esc(r.id)}">Supprimer</button>`}<button class="btn">Enregistrer</button></div>
+  <input type="hidden" name="id" value="${esc(r.id||'')}"></form>`)}
+const clean=s=>(s||'').replace(/\*/g,'').trim();
+const pDate=t=>{const m=t.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(!m)return '';const y=m[3].length===2?'20'+m[3]:m[3];return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`};
+const pTime=(h,m)=>h?String(h).padStart(2,'0')+':'+(m||'00'):'';
+const setF=(n,v)=>{const e=$('#sheet [name="'+n+'"]');if(e&&v!==undefined&&v!=='')e.value=v};
+function parseVisit(t){const par=clean((t.match(/effectu\S*\s*par\W*:\s*(.+)/i)||[])[1]);
+  if(par){const [a,b]=par.split(/\s+à\s+/i);const pa=findP(a),pb=findP(b||'');if(pa)setF('by',pa.id);if(pb)setF('to',pb.id)}
+  setF('date',pDate((t.match(/\*?Le\*?\s*:\s*([^\n]+)/i)||[])[1]||''));
+  const ty=norm(clean((t.match(/Type de visite\W*:\s*(.+)/i)||[])[1]));if(ty)setF('type',/video|visio/.test(ty)?VTYPES[2]:/appel|telephon/.test(ty)?VTYPES[1]:/exterieur|cafe|sortie/.test(ty)?VTYPES[3]:VTYPES[0]);
+  const h=t.match(/\*?De\*?\s*:\s*(\d{1,2})\s*h\s*(\d{2})?\s*(?:à|a|-)\s*(\d{1,2})\s*h\s*(\d{2})?/i);if(h){setF('h1',pTime(h[1],h[2]));setF('h2',pTime(h[3],h[4]))}
+  setF('motif',clean((t.match(/Motif[^:\n]*:\s*(.+)/i)||[])[1]));
+  const r=t.match(/R[ée]sum[ée][^:\n]*:\s*([\s\S]+)/i);if(r)setF('res',clean(r[1]).replace(/^[‘'"“]|[’'"”]$/g,''));setF('st','faite');toast('Formulaire rempli, vérifie avant d’enregistrer')}
+function parseEv(t){setF('date',pDate((t.match(/Date\s*:\s*([^\n]+)/i)||[])[1]||''));setF('lieu',clean((t.match(/Lieu\s*:\s*(.+)/i)||[])[1]));
+  const hl=t.match(/Heure\s*:\s*(\d{1,2})\s*h\s*(\d{2})?\s*(?:-|–|à|a)\s*(\d{1,2})\s*h\s*(\d{2})?[^\n]*\n([^\n]*)/i);
+  if(hl){setF('h1',pTime(hl[1],hl[2]));setF('h2',pTime(hl[3],hl[4]));if(hl[5].trim()&&!/🔸|semence/i.test(hl[5]))setF('eq',clean(hl[5]))}
+  const n=re=>(t.match(re)||[])[1];setF('se',n(/semences?\s*d[ée]pos[ée]e?s?\W*:\s*(\d+)/i));setF('co',n(/Contacts\W*:\s*(\d+)/i));setF('na',n(/naissances?\W*:\s*(\d+)/i));
+  const ra=clean((t.match(/rappeler\s*:\s*([\s\S]*)$/i)||[])[1]);setF('ra',ra==='/'?'':ra);toast('Formulaire rempli, vérifie avant d’enregistrer')}
+async function copy(txt){try{await navigator.clipboard.writeText(txt);toast('Copié : colle-le dans WhatsApp')}catch(e){open(`<h2>Copier le rapport</h2><p class="mini">Sélectionne le texte puis copie-le.</p><textarea rows="12" readonly>${esc(txt)}</textarea><div class="acts"><button class="btn" data-act="close">Fermer</button></div>`)}}
+
+/* ---------- Édition libre ---------- */
+const NOTE='Toujours rappeler l’importance d’être assidu aux cultes et de venir à l’heure, sans oublier d’enseigner sur la dîme et l’offrande.';
+const TT=(b,k,n)=>b[k]??n;
+const TF=(k,b)=>`<label>Total (laisse vide pour compter les noms)</label><input type="number" min="0" inputmode="numeric" name="${k}" value="${esc(b[k]??'')}" style="max-width:140px">`;
+const grN=id=>{const g=G(id);return g?'GR '+g.nom:'Sans GR'};
+function movesCard(){const l=[...S.moves].reverse().slice(0,15);
+  return `<div class="card" style="margin-top:14px"><h3>Membres déplacés</h3><p class="mini" style="margin-top:-4px">Pour déplacer quelqu’un : touche son nom, change son GR, enregistre. Le mouvement s’inscrit ici.</p>${l.length?l.map(m=>`<div class="row" style="cursor:default"><div class="av" style="background:${gcol(m.to)}">${esc(ini(nm(m.id)))}</div><div class="who"><b>${esc(nm(m.id))}</b><span>${esc(grN(m.from))} → ${esc(grN(m.to))} · ${esc(dmy(m.date))}</span></div><button class="btn sm ghost" data-act="mdel" data-i="${S.moves.indexOf(m)}" aria-label="Effacer ce mouvement">Effacer</button></div>`).join(''):'<p class="mini">Aucun déplacement enregistré.</p>'}</div>`}
+
+/* ---------- Bilan mensuel ---------- */
+const moisN=m=>new Date(m+'-15T12:00').toLocaleDateString('fr-FR',{month:'long'});
+const moisL=m=>moisN(m)+' '+m.slice(0,4);
+const deM=m=>/^[aeiouyh]/i.test(moisN(m))?'d’'+moisN(m):'de '+moisN(m);
+const KEYS=()=>[...S.grs.map(g=>[g.id,'GR '+g.nom]),['hors','Hors GR']];
+const L=s=>String(s||'').split('\n').map(x=>x.trim()).filter(Boolean);
+const sumL=o=>Object.values(o||{}).reduce((t,a)=>t+a.length,0);
+function bilanText(b){const blk=(o,skipEmptyHors)=>KEYS().filter(([k])=>!(k==='hors'&&skipEmptyHors&&!(o[k]||[]).length)).map(([k,l])=>`▪️ *${l}* : ${(o[k]||[]).length}${(o[k]||[]).length?'\n'+o[k].join('\n'):''}`).join('\n\n');
+  const st='✨'.repeat(11);
+  return `${st}\n🟣 *BILAN DES OBJECTIFS ${moisN(b.mois).toUpperCase()} ${b.mois.slice(0,4)}*\n\n${st}\n~~~~~~~~~~~~~~~~~~~~~~~~\n\n🔷 *CR global des objectifs*\n- Réseau : ${b.cr.reseau??0}\n${S.grs.map(g=>`- GR ${g.nom} : ${b.cr[g.id]??0}`).join('\n')}\n\n🔶 *Membres gagnés dans les Grs*: ${TT(b,'tg',sumL(b.ga))}\n\n${blk(b.ga)}\n\n🔷 *Membres en cours d’intégration :* ${TT(b,'ti',sumL(b.in))}\n\n${blk(b.in,true)}\n\n🔻 *Membres perdus* : ${TT(b,'tp',b.pe.length)}\n${b.pe.map(x=>'* '+x).join('\n')}\n\n🟣 *Membres inactifs En observation* : ${TT(b,'tia',b.ia.length)}\n Prier pour ces membres suivants à observer${b.ia.length?'\n'+b.ia.join('\n'):''}\n\n⚪ *Effectif fin ${moisN(b.mois).toUpperCase()}* : ${b.ef}\n${b.ob?` _L'objectif prévisionnel fixé début d'année était ${b.ob} pour le mois ${deM(b.mois)}_`:''}\n\n🟥 *Remarque*:\n${b.rem||''}`}
+function bilanAuto(m){const inM=d=>d&&d.slice(0,7)===m;const ga={},inn={};
+  for(const [k] of KEYS()){const f=p=>k==='hors'?!G(p.g):p.g===k;ga[k]=S.people.filter(p=>f(p)&&inM(p.m)).map(p=>p.n);inn[k]=S.people.filter(p=>f(p)&&p.s==='integration').map(p=>p.n)}
+  return {ga,in:inn,pe:S.people.filter(p=>p.s==='perdu'&&inM(p.out)).map(p=>p.n+(p.why?' ('+p.why+')':'')),ia:S.people.filter(p=>p.s==='inactif').map(p=>p.n),ef:S.people.filter(p=>ACT.includes(p.s)).length}}
+function vBilan(){const l=[...S.bilans].sort((a,b)=>b.mois.localeCompare(a.mois));
+  const names=(o)=>KEYS().filter(([k])=>(o[k]||[]).length).map(([k,lab])=>`<div class="meter" style="align-items:flex-start"><span>${esc(lab)}</span><p style="margin:0;flex:1">${o[k].map(esc).join(', ')}</p></div>`).join('')||'<p class="mini" style="margin:4px 0">Aucun</p>';
+  return `<div class="head"><h2>Bilan des objectifs</h2><button class="btn" data-act="bnew">+ Bilan du mois</button></div>
+  ${l.length>1?`<div class="card"><h3>Effectif et objectif</h3>${[...l].reverse().map(b=>`<div class="meter"><span>${esc(moisL(b.mois))}</span><div><i style="width:${Math.min(100,b.ob?b.ef/b.ob*100:100)}%;background:${b.ob&&b.ef>=b.ob?'#1f8a4c':'#c8203f'}"></i></div><b style="width:auto;white-space:nowrap">${b.ef}${b.ob?' / '+b.ob:''}</b></div>`).join('')}</div>`:''}
+  ${l.length?l.map(b=>`<div class="rep"><div class="top"><h3 style="font-size:28px;color:var(--wine)">${esc(moisL(b.mois))}</h3><div style="display:flex;gap:6px"><button class="btn sm" data-act="bcopy" data-id="${esc(b.id)}">Copier pour WhatsApp</button><button class="btn sm ghost" data-act="bopen" data-id="${esc(b.id)}">Modifier</button></div></div>
+  <div class="nums"><div><b>${b.ef}</b><span>effectif fin de mois</span></div><div><b>${b.ob||'–'}</b><span>objectif prévu</span></div><div><b style="color:${b.ob&&b.ef<b.ob?'#c8203f':'#1f8a4c'}">${b.ob?(b.ef-b.ob>0?'+':'')+(b.ef-b.ob):'–'}</b><span>écart</span></div></div>
+  <div class="facts" style="margin-top:12px"><span><b>CR global</b> · Réseau ${b.cr.reseau??0}</span>${S.grs.map(g=>`<span>GR ${esc(g.nom)} ${b.cr[g.id]??0}</span>`).join('')}</div>
+  <p><b>🔶 Membres gagnés : ${TT(b,'tg',sumL(b.ga))}</b></p>${names(b.ga)}
+  <p><b>🔷 En cours d’intégration : ${TT(b,'ti',sumL(b.in))}</b></p>${names(b.in)}
+  <p><b>🔻 Membres perdus : ${TT(b,'tp',b.pe.length)}</b>${b.pe.length?'<br>'+b.pe.map(esc).join('<br>'):''}</p>
+  <p><b>🟣 Inactifs en observation : ${TT(b,'tia',b.ia.length)}</b>${b.ia.length?'<br>'+b.ia.map(esc).join(', '):''}</p>
+  ${b.rem?`<p style="border-left:3px solid #c8203f;padding-left:10px"><b>Remarque :</b> ${esc(b.rem)}</p>`:''}</div>`).join(''):'<p class="card empty">Aucun bilan. Crée celui du mois : l’appli pré-remplit les membres gagnés, en intégration, perdus et inactifs.</p>'}`}
+function bilanForm(b){const isNew=!b.id;const ta=(n,a,ph)=>`<textarea name="${n}" rows="2" placeholder="${ph||'Un nom par ligne'}">${esc((a||[]).join('\n'))}</textarea>`;
+  open(`<form data-form="bilan"><h2>${isNew?'Nouveau bilan':'Bilan '+esc(moisL(b.mois))}</h2>
+  <div class="grid2"><div><label for="b-m">Mois</label><input id="b-m" type="month" name="mois" required value="${esc(b.mois)}"></div><div style="align-self:end"><button type="button" class="btn ghost" data-act="bauto" style="width:100%">Pré-remplir depuis l’appli</button></div></div>
+  <div class="gl">🔷 CR global des objectifs</div>
+  <div class="nums" style="grid-template-columns:repeat(auto-fit,minmax(90px,1fr));text-align:left"><div><label>Réseau</label><input type="number" min="0" inputmode="numeric" name="cr_reseau" value="${esc(b.cr.reseau??0)}"></div>${S.grs.map(g=>`<div><label>GR ${esc(g.nom)}</label><input type="number" min="0" inputmode="numeric" name="cr_${esc(g.id)}" value="${esc(b.cr[g.id]??0)}"></div>`).join('')}</div>
+  <div class="gl">🔶 Membres gagnés</div>${TF('tg',b)}${KEYS().map(([k,l])=>`<label>${esc(l)}</label>${ta('ga_'+k,b.ga[k])}`).join('')}
+  <div class="gl">🔷 Membres en cours d’intégration</div>${TF('ti',b)}${KEYS().map(([k,l])=>`<label>${esc(l)}</label>${ta('in_'+k,b.in[k])}`).join('')}
+  <div class="gl">🔻 Membres perdus</div>${TF('tp',b)}${ta('pe',b.pe,'Nom (raison), un par ligne')}
+  <div class="gl">🟣 Inactifs en observation</div>${TF('tia',b)}${ta('ia',b.ia)}
+  <div class="grid2"><div><label for="b-ef">⚪ Effectif fin de mois</label><input id="b-ef" type="number" min="0" name="ef" value="${esc(b.ef)}"></div><div><label for="b-ob">Objectif prévisionnel</label><input id="b-ob" type="number" min="0" name="ob" value="${esc(b.ob||'')}"></div></div>
+  <label for="b-r">🟥 Remarque</label><textarea id="b-r" name="rem" rows="3">${esc(b.rem)}</textarea>
+  <div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button>${isNew?'':`<button type="button" class="btn ghost" data-act="bdel" data-id="${esc(b.id)}">Supprimer</button>`}<button class="btn">Enregistrer</button></div>
+  <input type="hidden" name="id" value="${esc(b.id||'')}"></form>`)}
+function fillAuto(){const m=$('#b-m').value;if(!m)return toast('Choisis d’abord le mois');const a=bilanAuto(m);
+  for(const [k] of KEYS()){setF('ga_'+k,a.ga[k].join('\n'));setF('in_'+k,a.in[k].join('\n'))}
+  $('#sheet [name=pe]').value=a.pe.join('\n');$('#sheet [name=ia]').value=a.ia.join('\n');setF('ef',a.ef);toast('Pré-rempli, complète les CR et la remarque')}
+
+const VIEWS={accueil:vAccueil,membres:vMembres,invites:vInvites,gr:()=>vGR()+movesCard(),visites:vVisites,evangelisation:vEvang,bilan:vBilan,presences:vPres};
+function render(){S.evp??=[];S.visits??=[];S.evang??=[];S.bilans??=[];S.moves??=[];S.seq??=1000;let v=location.hash.slice(1);if(!VIEWS[v])v='accueil';
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
+  $('#app').innerHTML=VIEWS[v]()}
+
+function open(h){$('#sheet').innerHTML=h;$('#ov').hidden=false;const f=$('#sheet input,#sheet select');if(f&&window.innerWidth>700)f.focus()}
+function close(){$('#ov').hidden=true;$('#sheet').innerHTML=''}
+const opts=(arr,sel)=>arr.map(([v,l])=>`<option value="${esc(v)}" ${v===sel?'selected':''}>${esc(l)}</option>`).join('');
+
+function personForm(p){const isNew=!p.id;const r=isNew?null:rate(p);
+  const att=isNew?[]:sess().filter(s=>s.pr.includes(p.id)).slice(0,5);
+  open(`<form data-form="person"><h2>${isNew?'Nouvelle personne':esc(p.n)}</h2>
+  ${!isNew?`<p class="mini">${r==null?'Pas encore de pointage':'Présence : '+Math.round(r*100)+'% sur les 8 derniers temps'}${att.length?' · vu(e) le '+att.map(s=>esc(fd(s.date))).join(', '):''}</p>`:''}
+  ${!isNew?(()=>{const lv=lastVisit(p.id),nv=S.visits.filter(v=>v.to===p.id&&v.st==='prevue').sort((a,b)=>a.date.localeCompare(b.date))[0];return `<p class="mini" style="margin:4px 0 0">${lv?'Dernière visite : '+esc(dmy(lv.date))+' par '+esc(nm(lv.by)):'Pas encore visité(e)'}${nv?' · prochaine le '+esc(dmy(nv.date)):''} · <button type="button" class="btn sm ghost" data-act="vnew" data-id="${esc(p.id)}">Planifier une visite</button></p>`})():''}
+  <label for="f-n">Prénom et nom</label><input id="f-n" name="n" required value="${esc(p.n)}">
+  <div class="grid2"><div><label for="f-g">GR (change-le pour déplacer)</label><select id="f-g" name="g"><option value="">Aucun</option>${opts(S.grs.map(g=>[g.id,'GR '+g.nom]),p.g)}</select></div>
+  <div><label for="f-s">Statut</label><select id="f-s" name="s">${opts(Object.entries(ST),p.s)}</select></div></div>
+  <div class="grid2"><div><label for="f-t">Téléphone</label><input id="f-t" name="t" type="tel" value="${esc(p.t)}"></div>
+  <div><label for="f-v">1re visite / arrivée</label><input id="f-v" name="v" type="date" value="${esc(p.v)}"></div></div>
+  <label for="f-by">Invité(e) par</label><input id="f-by" name="by" value="${esc(p.by)}">
+  <label for="f-why">Raison du départ (si parti·e)</label><input id="f-why" name="why" value="${esc(p.why)}" placeholder="Déménagement…">
+  <label for="f-no">Notes de suivi</label><textarea id="f-no" name="no" rows="3" placeholder="Besoins de prière, appels, visites…">${esc(p.no)}</textarea>
+  <div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button>${isNew?'':`<button type="button" class="btn ghost" data-act="del" data-id="${esc(p.id)}">Supprimer</button>`}<button class="btn">Enregistrer</button></div>
+  <input type="hidden" name="id" value="${esc(p.id||'')}"></form>`)}
+
+let draft=null;
+function sessForm(s){draft={...s,pr:[...s.pr]};const isNew=!s.id;
+  const groups=[...S.grs.map(g=>['GR '+g.nom,S.people.filter(p=>p.g===g.id&&!['inactif','perdu'].includes(p.s))]),['Invités & intégration (sans GR)',S.people.filter(p=>!G(p.g)&&!['inactif','perdu'].includes(p.s))],['Inactifs',S.people.filter(p=>p.s==='inactif')]].filter(x=>x[1].length);
+  open(`<form data-form="sess"><h2>${isNew?'Nouveau pointage':'Modifier le pointage'}</h2>
+  <div class="grid2"><div><label for="s-d">Date</label><input id="s-d" name="date" type="date" required value="${esc(s.date)}"></div>
+  <div><label for="s-t">Type</label><select id="s-t" name="type">${opts(TYPES.map(t=>[t,t]),s.type)}</select></div></div>
+  <div class="count" id="cnt"></div>
+  ${groups.map(([l,ps])=>`<div class="gl">${esc(l)}</div><div class="tgs">${ps.sort(byName).map(p=>`<button type="button" class="tg ${draft.pr.includes(p.id)?'on':''}" data-act="tg" data-id="${esc(p.id)}">${esc(p.n)}</button>`).join('')}</div>`).join('')}
+  <div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button>${isNew?'':`<button type="button" class="btn ghost" data-act="sdel">Supprimer</button>`}<button class="btn">Enregistrer</button></div></form>`);cnt()}
+const cnt=()=>{const e=$('#cnt');if(e)e.textContent=draft.pr.length+' présent(s) coché(s)'};
+
+function grForm(g){open(`<form data-form="gr"><h2>${g.id?'GR '+esc(g.nom):'Nouveau GR'}</h2>
+  <label for="g-n">Nom du GR</label><input id="g-n" name="nom" required value="${esc(g.nom)}" placeholder="ex. Lise">
+  <label for="g-r">Responsable</label><select id="g-r" name="resp"><option value="">À définir</option>${opts([...S.people].sort(byName).map(p=>[p.id,p.n]),g.resp)}</select>
+  <p class="mini">Le responsable est automatiquement placé dans ce GR avec le statut Leader.</p>
+  <div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button>${g.id?`<button type="button" class="btn ghost" data-act="gdel" data-id="${esc(g.id)}">Supprimer</button>`:''}<button class="btn">Enregistrer</button></div>
+  <input type="hidden" name="id" value="${esc(g.id||'')}"></form>`)}
+
+document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t){if(e.target.id==='ov')close();return}
+  const a=t.dataset.act,id=t.dataset.id;
+  if(a==='open')personForm(P(id));
+  else if(a==='add')personForm({n:'',s:t.dataset.s,g:'',v:t.dataset.s==='invite'?today():''});
+  else if(a==='filt'){filt=t.dataset.f;try{localStorage.setItem('eff-f',filt)}catch(x){}render()}
+  else if(a==='ifilt'){ifilt=t.dataset.f;render()}
+  else if(a==='promote'){const p=P(id);p.s=t.dataset.to;if(p.s==='membre')p.m=today();toast(p.n+' → '+ST[p.s]);save()}
+  else if(a==='close')close();
+  else if(a==='del'){if(t.dataset.ok){S.people=S.people.filter(p=>p.id!==id);S.sessions.forEach(s=>s.pr=s.pr.filter(x=>x!==id));S.grs.forEach(g=>{if(g.resp===id)g.resp=''});close();save()}else{t.dataset.ok=1;t.textContent='Confirmer la suppression';t.style.background='#c8203f';t.style.color='#fff'}}
+  else if(a==='sess-new')sessForm({date:today(),type:TYPES[0],pr:[]});
+  else if(a==='sess')sessForm(S.sessions.find(s=>s.id===id));
+  else if(a==='tg'){const i=draft.pr.indexOf(id);i<0?draft.pr.push(id):draft.pr.splice(i,1);t.classList.toggle('on');cnt()}
+  else if(a==='sdel'){if(t.dataset.ok){S.sessions=S.sessions.filter(s=>s.id!==draft.id);close();save()}else{t.dataset.ok=1;t.textContent='Confirmer';t.style.background='#c8203f';t.style.color='#fff'}}
+  else if(a==='vtab'){vtab=t.dataset.f;render()}
+  else if(a==='vnew')visitForm({st:'prevue',to:id||'',by:id&&G(P(id).g)?G(P(id).g).resp:'',date:today(),type:VTYPES[0]});
+  else if(a==='vrep')visitForm({st:'faite',date:today(),type:VTYPES[0]});
+  else if(a==='vopen')visitForm(S.visits.find(v=>v.id===id));
+  else if(a==='vcopy')copy(visitText(S.visits.find(v=>v.id===id)));
+  else if(a==='vparse')parseVisit($('#pz').value);
+  else if(a==='vdel'){if(t.dataset.ok){S.visits=S.visits.filter(v=>v.id!==id);close();save()}else{t.dataset.ok=1;t.textContent='Confirmer';t.style.background='#c8203f';t.style.color='#fff'}}
+  else if(a==='etab'){etab=t.dataset.f;render()}
+  else if(a==='efilt'){efilt=t.dataset.f;render()}
+  else if(a==='pnew'){const r=id?S.evang.find(x=>x.id===id):null;evpForm({date:r?r.date:today(),lieu:r?r.lieu:'',par:r?r.eq:'',rid:r?r.id:'',st:'rappeler'})}
+  else if(a==='popen')evpForm(S.evp.find(x=>x.id===id));
+  else if(a==='pst'){const x=S.evp.find(y=>y.id===id);x.st=t.dataset.to;toast(x.n+' : '+EST[x.st]);save()}
+  else if(a==='pconv'){const x=S.evp.find(y=>y.id===id);if(x.pid&&P(x.pid)){toast('Déjà dans les invités');return}const p={id:uid('p'),n:x.n,s:'invite',v:today(),by:x.par||'',no:('Évangélisé(e) le '+dmy(x.date)+(x.lieu?' à '+x.lieu:'')+'. '+(x.no||'')).trim()};if(x.t)p.t=x.t;if(!p.by)delete p.by;S.people.push(p);x.st='invite';x.pid=p.id;toast(x.n+' ajouté(e) aux invités');save()}
+  else if(a==='pdel'){if(t.dataset.ok){S.evp=S.evp.filter(x=>x.id!==id);close();save()}else{t.dataset.ok=1;t.textContent='Confirmer';t.style.background='#c8203f';t.style.color='#fff'}}
+  else if(a==='enew')evForm({date:today(),se:0,co:0,na:0});
+  else if(a==='eopen')evForm(S.evang.find(r=>r.id===id));
+  else if(a==='ecopy')copy(evText(S.evang.find(r=>r.id===id)));
+  else if(a==='eparse')parseEv($('#pz').value);
+  else if(a==='edel'){if(t.dataset.ok){S.evang=S.evang.filter(r=>r.id!==id);close();save()}else{t.dataset.ok=1;t.textContent='Confirmer';t.style.background='#c8203f';t.style.color='#fff'}}
+  else if(a==='bnew'){const d=new Date();d.setDate(0);const m=d.toISOString().slice(0,7);bilanForm({mois:S.bilans.some(b=>b.mois===m)?today().slice(0,7):m,cr:{},ga:{},in:{},pe:[],ia:[],ef:S.people.filter(p=>ACT.includes(p.s)).length})}
+  else if(a==='bopen')bilanForm(S.bilans.find(b=>b.id===id));
+  else if(a==='bcopy')copy(bilanText(S.bilans.find(b=>b.id===id)));
+  else if(a==='bauto')fillAuto();
+  else if(a==='bdel'){if(t.dataset.ok){S.bilans=S.bilans.filter(b=>b.id!==id);close();save()}else{t.dataset.ok=1;t.textContent='Confirmer';t.style.background='#c8203f';t.style.color='#fff'}}
+  else if(a==='mdel'){S.moves.splice(+t.dataset.i,1);save()}
+  else if(a==='note-edit')open(`<form data-form="note"><h2>Point important</h2><label for="n-t">Texte affiché sur l’accueil</label><textarea id="n-t" name="note" rows="5">${esc(S.note??NOTE)}</textarea><div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button><button class="btn">Enregistrer</button></div></form>`);
+  else if(a==='export')copy(JSON.stringify(S));
+  else if(a==='import')open(`<form data-form="import"><h2>Importer des données</h2><p class="mini">Colle ici des données copiées avec « Copier toutes les données ». Elles remplaceront entièrement les données actuelles.</p><textarea name="json" rows="8" required></textarea><div class="acts"><button type="button" class="btn ghost" data-act="close">Annuler</button><button class="btn">Remplacer les données</button></div></form>`);
+  else if(a==='gr-new')grForm({nom:'',resp:''});
+  else if(a==='gr-edit')grForm(G(id));
+  else if(a==='gdel'){if(S.people.some(p=>p.g===id)){toast('Déplace d’abord les membres de ce GR');return}S.grs=S.grs.filter(g=>g.id!==id);close();save()}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#ov').hidden)close();if(e.key==='Enter'&&e.target.matches('.row'))e.target.click()});
+document.addEventListener('input',e=>{if(e.target.id==='q'){q=e.target.value;$('#list').innerHTML=memList()}if(e.target.id==='eq'){eq=e.target.value;$('#elist').innerHTML=evpList()}});
+document.addEventListener('submit',e=>{e.preventDefault();const f=e.target,d=Object.fromEntries(new FormData(f));
+  if(f.dataset.form==='person'){const n=d.n.trim();if(!n)return;let p=d.id?P(d.id):null;
+    if(!p){p={id:uid('p')};S.people.push(p)}
+    const old=p.s,og=p.g;if(old&&(og||"")!==(d.g||"")){S.moves.push({date:today(),id:p.id,from:og||"",to:d.g||""})}Object.assign(p,{n,g:d.g,s:d.s,t:d.t.trim(),v:d.v,by:d.by.trim(),no:d.no.trim(),why:d.why.trim()});
+    if(old&&old!==p.s){if(ACT.includes(p.s)&&['invite','integration'].includes(old))p.m=today();if(p.s==='perdu')p.out=today()}
+    for(const k of ['g','t','v','by','no','why'])if(!p[k])delete p[k];
+    toast(n+' enregistré(e)')}
+  else if(f.dataset.form==='sess'){Object.assign(draft,{date:d.date,type:d.type});
+    if(draft.id)S.sessions=S.sessions.map(s=>s.id===draft.id?draft:s);else{draft.id=uid('s');S.sessions.push(draft)}
+    toast(draft.pr.length+' présent(s) enregistrés')}
+  else if(f.dataset.form==='gr'){let g=d.id?G(d.id):null;if(!g){g={id:uid('g')};S.grs.push(g)}
+    g.nom=d.nom.trim();g.resp=d.resp;const r=P(d.resp);if(r){r.g=g.id;r.s='leader'}}
+  else if(f.dataset.form==='visit'){let v=d.id?S.visits.find(x=>x.id===d.id):null;if(!v){v={id:uid('v')};S.visits.push(v)}
+    Object.assign(v,{by:d.by,to:d.to,date:d.date,type:d.type,h1:d.h1,h2:d.h2,motif:d.motif.trim(),st:d.st,res:d.res.trim()});
+    toast(v.st==='faite'?'Rapport de visite enregistré':'Visite planifiée le '+dmy(v.date))}
+  else if(f.dataset.form==='note'){S.note=d.note.trim()||NOTE}
+  else if(f.dataset.form==='import'){let n;try{n=JSON.parse(d.json)}catch(x){toast('Données illisibles : vérifie le copier-coller');return}
+    if(!n||!Array.isArray(n.people)||!Array.isArray(n.grs)){toast('Ce ne sont pas des données Effusion');return}
+    S=n;toast('Données importées')}
+  else if(f.dataset.form==='bilan'){let b=d.id?S.bilans.find(x=>x.id===d.id):null;
+    const dup=S.bilans.find(x=>x.mois===d.mois&&x.id!==d.id);if(dup){toast('Un bilan existe déjà pour ce mois');return}
+    if(!b){b={id:uid('b')};S.bilans.push(b)}
+    const cr={reseau:+d.cr_reseau||0},ga={},inn={};S.grs.forEach(g=>cr[g.id]=+d['cr_'+g.id]||0);
+    for(const [k] of KEYS()){ga[k]=L(d['ga_'+k]);inn[k]=L(d['in_'+k])}
+    Object.assign(b,{mois:d.mois,cr,ga,in:inn,pe:L(d.pe),ia:L(d.ia),ef:+d.ef||0,ob:+d.ob||0,rem:d.rem.trim()});for(const k of ['tg','ti','tp','tia'])d[k]===''?delete b[k]:b[k]=+d[k];toast('Bilan '+moisL(b.mois)+' enregistré')}
+  else if(f.dataset.form==='evp'){const n=d.n.trim();if(!n)return;let x=d.id?S.evp.find(y=>y.id===d.id):null;if(!x){x={id:uid('x')};S.evp.push(x)}
+    Object.assign(x,{n,t:d.t.trim(),date:d.date,lieu:d.lieu.trim(),par:d.par.trim(),rid:d.rid,st:d.st,nn:!!d.nn,no:d.no.trim()});toast(n+' enregistré(e)')}
+  else if(f.dataset.form==='ev'){let r=d.id?S.evang.find(x=>x.id===d.id):null;if(!r){r={id:uid('e')};S.evang.push(r)}
+    Object.assign(r,{date:d.date,lieu:d.lieu.trim(),h1:d.h1,h2:d.h2,eq:d.eq.trim(),se:+d.se||0,co:+d.co||0,na:+d.na||0,ra:d.ra.trim()});toast('Rapport d’évangélisation enregistré')}
+  close();save()});
+window.addEventListener('hashchange',()=>{close();render();scrollTo(0,0)});
+window.EFF={get:()=>S,set:(k,v)=>{S[k]=v},render:()=>render(),toast};
+render();
+}
+</script>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,collection,doc,onSnapshot,setDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+const $=s=>document.querySelector(s);
+const E=window.EFF;
+const gate=$('#gate'),gmsg=$('#gmsg'),who=$('#who');
+const say=(t,bad)=>{gmsg.textContent=t;gmsg.style.color=bad?'#c8203f':''};
+const setSync=t=>{const e=$('#sync');if(e)e.textContent=t};
+function main(){
+  const cfg=window.FIREBASE_CONFIG;
+  if(!cfg||!cfg.apiKey||/COLLE/.test(cfg.apiKey)){say('Configuration Firebase manquante : remplis le fichier config.js sur GitHub.',true);$('#gform').hidden=true;return}
+  const app=initializeApp(cfg),auth=getAuth(app);
+  let db;try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){db=initializeFirestore(app,{})}
+  let last={},unsub=null,user=null,first=true,deferred=false,loaded=false;
+  const safeRender=()=>{const a=document.activeElement;if(a&&a.closest&&a.closest('#app')&&a.matches('input,textarea')){deferred=true;return}E.render()};
+  document.addEventListener('focusout',()=>{if(deferred){deferred=false;setTimeout(()=>E.render(),0)}});
+  window.EFF_REMOTE=async S=>{if(!user)return;if(!loaded){E.toast('Patiente : les données se chargent encore. Refais la modification dans un instant.');return}const w=[];
+    for(const k of Object.keys(S)){const s=JSON.stringify(S[k]);if(s!==last[k]){last[k]=s;w.push(setDoc(doc(db,'effusion',k),{d:s,at:serverTimestamp(),by:user.email}))}}
+    if(!w.length)return;
+    if(!navigator.onLine){setSync('Hors ligne · enregistré, sera envoyé dès que tu as du réseau');E.toast('Enregistré (envoi dès le retour du réseau)')}else setSync('Enregistrement…');
+    try{await Promise.all(w);setSync('Synchronisé ✓')}catch(e){setSync('Erreur d’enregistrement');E.toast(e.code==='permission-denied'?'Accès refusé : ton e-mail n’est pas autorisé':'Échec de l’enregistrement, réessaie')}};
+  $('#gform').addEventListener('submit',async e=>{e.preventDefault();say('Connexion…');
+    try{await signInWithEmailAndPassword(auth,$('#gmail').value.trim(),$('#gpass').value)}
+    catch(x){say(/invalid|wrong|not-found|credential/.test(x.code||'')?'E-mail ou mot de passe incorrect.':x.code==='auth/too-many-requests'?'Trop d’essais, réessaie dans quelques minutes.':x.code==='auth/network-request-failed'?'Pas de connexion internet.':'Connexion impossible ('+(x.code||'erreur')+').',true)}});
+  $('#gforgot').addEventListener('click',async()=>{const m=$('#gmail').value.trim();if(!m){say('Écris d’abord ton e-mail, puis touche « Mot de passe oublié ».',true);return}
+    try{await sendPasswordResetEmail(auth,m);say('E-mail de réinitialisation envoyé à '+m+'.')}catch(x){say('Envoi impossible : vérifie l’adresse.',true)}});
+  document.addEventListener('click',e=>{if(e.target.closest('#logout'))signOut(auth).then(()=>location.reload())});
+  onAuthStateChanged(auth,u=>{user=u;
+    if(!u){if(unsub)unsub();gate.hidden=false;who.hidden=true;return}
+    gate.hidden=true;who.hidden=false;$('#me').textContent=u.email;setSync('Chargement…');
+    unsub=onSnapshot(collection(db,'effusion'),{includeMetadataChanges:true},snap=>{let ch=false;if(!snap.metadata.fromCache||!snap.empty)loaded=true;
+      snap.docChanges().forEach(c=>{if(c.type==='removed')return;const d=c.doc.data().d;if(typeof d!=='string'||last[c.doc.id]===d)return;last[c.doc.id]=d;try{E.set(c.doc.id,JSON.parse(d));ch=true}catch(x){}});
+      if(first&&!snap.metadata.fromCache){first=false;if(snap.empty)E.toast('Base vide : importe tes données (Accueil → Importer des données)')}
+      if(ch)safeRender();
+      setSync(snap.metadata.hasPendingWrites?'Enregistrement…':snap.metadata.fromCache?'Hors ligne · données de ce téléphone':'Synchronisé ✓')},
+      err=>{gate.hidden=false;who.hidden=true;say(err.code==='permission-denied'?'Ton compte ('+u.email+') n’a pas accès. Demande au responsable d’ajouter ton e-mail dans les règles Firebase.':'Erreur de chargement ('+err.code+').',true);$('#gform').hidden=true;$('#glogout').hidden=false})});
+}
+main();
+</script>
+</body>
+</html>
