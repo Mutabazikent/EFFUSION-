@@ -49,6 +49,7 @@ main{max-width:1000px;margin:0 auto;padding:20px 16px}
 .row{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
 .row:last-child{border-bottom:0}
 .av{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
+.av{overflow:hidden}.av img{width:100%;height:100%;object-fit:cover;display:block}.av.big{width:84px;height:84px;font-size:28px}.phbox{display:flex;gap:14px;align-items:center;margin:12px 0 4px}
 .who{flex:1}.who b{display:block;font-weight:600}.who span{font-size:13px;color:var(--mut)}
 .tag{font-size:12px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--wine);white-space:nowrap}
 .tag.leader{background:#c8203f;color:#fff}.tag.futur{background:#f1b23a;color:#3a2100}.tag.rappeler{background:#f1b23a;color:#3a2100}.tag.rappele{background:light-dark(#dcefff,#12324d);color:light-dark(#0f4c81,#9fd0ff)}.tag.pas{background:light-dark(#eee,#2c2a2b);color:var(--mut)}.tag.nn{background:#1f8a4c;color:#fff}.tag.perdu{background:light-dark(#eee,#2c2a2b);color:var(--mut);text-decoration:line-through}.tag.inactif{background:light-dark(#e5e1e2,#3a3336);color:var(--mut)}.tag.invite{background:light-dark(#dcefff,#12324d);color:light-dark(#0f4c81,#9fd0ff)}.tag.integration{background:light-dark(#dff5e6,#123a22);color:light-dark(#17693a,#8fe0ab)}
@@ -176,8 +177,12 @@ const ini=n=>n.split(/[\s-]+/).filter(Boolean).map(x=>x[0]).join('').slice(0,2).
 const sess=()=>[...S.sessions].sort((a,b)=>b.date.localeCompare(a.date));
 const byName=(a,b)=>a.n.localeCompare(b.n,'fr');
 function rate(p){const ss=sess().slice(0,8).filter(s=>!p.v||s.date>=p.v);if(!ss.length)return null;return ss.filter(s=>s.pr.includes(p.id)).length/ss.length}
+const PH={};const okPh=u=>typeof u==='string'&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(u);
+const photoOf=id=>{const u=PH[id]||(S.photos||{})[id];return okPh(u)?u:''};
+const avatar=(p,big)=>{const u=photoOf(p.id);return `<div class="av${big?' big':''}" style="background:${gcol(p.g)}">${u?`<img src="${u}" alt="">`:esc(ini(p.n))}</div>`};
+function setPhoto(id,u){if(window.EFF_PHOTO_REMOTE){if(u)PH[id]=u;else delete PH[id];window.EFF_PHOTO_REMOTE(id,u)}else{S.photos??={};if(u)S.photos[id]=u;else delete S.photos[id]}}
 function row(p){const r=rate(p),g=G(p.g);
-  return `<div class="row" data-act="open" data-id="${esc(p.id)}" tabindex="0"><div class="av" style="background:${gcol(p.g)}">${esc(ini(p.n))}</div><div class="who"><b>${esc(p.n)}</b><span>${g?'GR '+esc(g.nom):'Sans GR'}${p.t?' · '+esc(p.t):''}${p.by?' · invité(e) par '+esc(p.by):''}</span></div><span class="tag ${esc(p.s)}">${esc(ST[p.s]||p.s)}</span><span class="pct" title="Présence sur les 8 derniers temps">${r==null?'–':Math.round(r*100)+'%'}</span></div>`}
+  return `<div class="row" data-act="open" data-id="${esc(p.id)}" tabindex="0">${avatar(p)}<div class="who"><b>${esc(p.n)}</b><span>${g?'GR '+esc(g.nom):'Sans GR'}${p.t?' · '+esc(p.t):''}${p.by?' · invité(e) par '+esc(p.by):''}</span></div><span class="tag ${esc(p.s)}">${esc(ST[p.s]||p.s)}</span><span class="pct" title="Présence sur les 8 derniers temps">${r==null?'–':Math.round(r*100)+'%'}</span></div>`}
 
 function vAccueil(){
   const act=S.people.filter(p=>['leader','futur','membre'].includes(p.s));
@@ -383,11 +388,12 @@ function open(h){$('#sheet').innerHTML=h;$('#ov').hidden=false;const f=$('#sheet
 function close(){$('#ov').hidden=true;$('#sheet').innerHTML=''}
 const opts=(arr,sel)=>arr.map(([v,l])=>`<option value="${esc(v)}" ${v===sel?'selected':''}>${esc(l)}</option>`).join('');
 
-function personForm(p){const isNew=!p.id;const r=isNew?null:rate(p);
+function personForm(p){phDraft=undefined;const isNew=!p.id;const r=isNew?null:rate(p);
   const att=isNew?[]:sess().filter(s=>s.pr.includes(p.id)).slice(0,5);
   open(`<form data-form="person"><h2>${isNew?'Nouvelle personne':esc(p.n)}</h2>
   ${!isNew?`<p class="mini">${r==null?'Pas encore de pointage':'Présence : '+Math.round(r*100)+'% sur les 8 derniers temps'}${att.length?' · vu(e) le '+att.map(s=>esc(fd(s.date))).join(', '):''}</p>`:''}
   ${!isNew?(()=>{const lv=lastVisit(p.id),nv=S.visits.filter(v=>v.to===p.id&&v.st==='prevue').sort((a,b)=>a.date.localeCompare(b.date))[0];return `<p class="mini" style="margin:4px 0 0">${lv?'Dernière visite : '+esc(dmy(lv.date))+' par '+esc(nm(lv.by)):'Pas encore visité(e)'}${nv?' · prochaine le '+esc(dmy(nv.date)):''} · <button type="button" class="btn sm ghost" data-act="vnew" data-id="${esc(p.id)}">Planifier une visite</button></p>`})():''}
+  <div class="phbox">${avatar(p.id?p:{id:"",n:p.n||"?",g:p.g},true)}<div><label class="btn sm ghost" for="f-ph" style="display:inline-flex;align-items:center;margin:0;color:var(--wine)">${photoOf(p.id)?"Changer la photo":"Ajouter une photo"}</label><input id="f-ph" type="file" accept="image/*" hidden>${photoOf(p.id)?`<button type="button" class="btn sm ghost" data-act="phdel" style="margin-left:6px">Retirer</button>`:""}<p class="mini" style="margin:6px 0 0">Prise avec l’appareil photo ou choisie dans la galerie.</p></div></div>
   <label for="f-n">Prénom et nom</label><input id="f-n" name="n" required value="${esc(p.n)}">
   <div class="grid2"><div><label for="f-g">GR (change-le pour déplacer)</label><select id="f-g" name="g"><option value="">Aucun</option>${opts(S.grs.map(g=>[g.id,'GR '+g.nom]),p.g)}</select></div>
   <div><label for="f-s">Statut</label><select id="f-s" name="s">${opts(Object.entries(ST),p.s)}</select></div></div>
@@ -425,7 +431,8 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
   else if(a==='ifilt'){ifilt=t.dataset.f;render()}
   else if(a==='promote'){const p=P(id);p.s=t.dataset.to;if(p.s==='membre')p.m=today();toast(p.n+' → '+ST[p.s]);save()}
   else if(a==='close')close();
-  else if(a==='del'){if(t.dataset.ok){S.people=S.people.filter(p=>p.id!==id);S.sessions.forEach(s=>s.pr=s.pr.filter(x=>x!==id));S.grs.forEach(g=>{if(g.resp===id)g.resp=''});close();save()}else{t.dataset.ok=1;t.textContent='Confirmer la suppression';t.style.background='#c8203f';t.style.color='#fff'}}
+  else if(a==='phdel'){phDraft=null;const b=$('#sheet .av.big');if(b){b.innerHTML='';b.textContent=ini($('#f-n').value||'?')}t.remove();toast('La photo sera retirée à l’enregistrement')}
+  else if(a==='del'){if(t.dataset.ok){if(photoOf(id))setPhoto(id,null);S.people=S.people.filter(p=>p.id!==id);S.sessions.forEach(s=>s.pr=s.pr.filter(x=>x!==id));S.grs.forEach(g=>{if(g.resp===id)g.resp=''});close();save()}else{t.dataset.ok=1;t.textContent='Confirmer la suppression';t.style.background='#c8203f';t.style.color='#fff'}}
   else if(a==='sess-new')sessForm({date:today(),type:TYPES[0],pr:[]});
   else if(a==='sess')sessForm(S.sessions.find(s=>s.id===id));
   else if(a==='tg'){const i=draft.pr.indexOf(id);i<0?draft.pr.push(id):draft.pr.splice(i,1);t.classList.toggle('on');cnt()}
@@ -463,11 +470,16 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(
   else if(a==='gr-edit')grForm(G(id));
   else if(a==='gdel'){if(S.people.some(p=>p.g===id)){toast('Déplace d’abord les membres de ce GR');return}S.grs=S.grs.filter(g=>g.id!==id);close();save()}
 });
+let phDraft;
+function shrink(file){return new Promise((ok,ko)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const S2=240,c=document.createElement('canvas');c.width=c.height=S2;const s=Math.min(im.naturalWidth,im.naturalHeight);c.getContext('2d').drawImage(im,(im.naturalWidth-s)/2,(im.naturalHeight-s)/2,s,s,0,0,S2,S2);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',0.8))};im.onerror=()=>{URL.revokeObjectURL(u);ko()};im.src=u})}
+document.addEventListener('change',async e=>{if(e.target.id!=='f-ph'||!e.target.files[0])return;
+  try{const u=await shrink(e.target.files[0]);phDraft=u;const b=$('#sheet .av.big');if(b)b.innerHTML=`<img src="${u}" alt="">`;toast('Photo prête : touche Enregistrer')}catch(x){toast('Image illisible, essaie une autre photo')}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#ov').hidden)close();if(e.key==='Enter'&&e.target.matches('.row'))e.target.click()});
 document.addEventListener('input',e=>{if(e.target.id==='q'){q=e.target.value;$('#list').innerHTML=memList()}if(e.target.id==='eq'){eq=e.target.value;$('#elist').innerHTML=evpList()}});
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target,d=Object.fromEntries(new FormData(f));
   if(f.dataset.form==='person'){const n=d.n.trim();if(!n)return;let p=d.id?P(d.id):null;
     if(!p){p={id:uid('p')};S.people.push(p)}
+    if(phDraft!==undefined){setPhoto(p.id,phDraft);phDraft=undefined}
     const old=p.s,og=p.g;if(old&&(og||"")!==(d.g||"")){S.moves.push({date:today(),id:p.id,from:og||"",to:d.g||""})}Object.assign(p,{n,g:d.g,s:d.s,t:d.t.trim(),v:d.v,by:d.by.trim(),no:d.no.trim(),why:d.why.trim()});
     if(old&&old!==p.s){if(ACT.includes(p.s)&&['invite','integration'].includes(old))p.m=today();if(p.s==='perdu')p.out=today()}
     for(const k of ['g','t','v','by','no','why'])if(!p[k])delete p[k];
@@ -496,14 +508,14 @@ document.addEventListener('submit',e=>{e.preventDefault();const f=e.target,d=Obj
     Object.assign(r,{date:d.date,lieu:d.lieu.trim(),h1:d.h1,h2:d.h2,eq:d.eq.trim(),se:+d.se||0,co:+d.co||0,na:+d.na||0,ra:d.ra.trim()});toast('Rapport d’évangélisation enregistré')}
   close();save()});
 window.addEventListener('hashchange',()=>{close();render();scrollTo(0,0)});
-window.EFF={get:()=>S,set:(k,v)=>{S[k]=v},render:()=>render(),toast};
+window.EFF={setPhoto:(id,u)=>{if(u)PH[id]=u;else delete PH[id]},get:()=>S,set:(k,v)=>{S[k]=v},render:()=>render(),toast};
 render();
 }
 </script>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,collection,doc,onSnapshot,setDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,collection,doc,onSnapshot,setDoc,deleteDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 const $=s=>document.querySelector(s);
 const E=window.EFF;
 const gate=$('#gate'),gmsg=$('#gmsg'),who=$('#who');
@@ -522,6 +534,8 @@ function main(){
     if(!w.length)return;
     if(!navigator.onLine){setSync('Hors ligne · enregistré, sera envoyé dès que tu as du réseau');E.toast('Enregistré (envoi dès le retour du réseau)')}else setSync('Enregistrement…');
     try{await Promise.all(w);setSync('Synchronisé ✓')}catch(e){setSync('Erreur d’enregistrement');E.toast(e.code==='permission-denied'?'Accès refusé : ton e-mail n’est pas autorisé':'Échec de l’enregistrement, réessaie')}};
+  window.EFF_PHOTO_REMOTE=async(id,u)=>{if(!user||!loaded)return;const k='ph_'+id;last[k]=u;setSync('Enregistrement…');
+    try{await(u?setDoc(doc(db,'effusion',k),{d:u,at:serverTimestamp(),by:user.email}):deleteDoc(doc(db,'effusion',k)));setSync('Synchronisé ✓')}catch(e){setSync('Erreur d’enregistrement');E.toast('Photo non enregistrée, réessaie')}};
   $('#gform').addEventListener('submit',async e=>{e.preventDefault();say('Connexion…');
     try{await signInWithEmailAndPassword(auth,$('#gmail').value.trim(),$('#gpass').value)}
     catch(x){say(/invalid|wrong|not-found|credential/.test(x.code||'')?'E-mail ou mot de passe incorrect.':x.code==='auth/too-many-requests'?'Trop d’essais, réessaie dans quelques minutes.':x.code==='auth/network-request-failed'?'Pas de connexion internet.':'Connexion impossible ('+(x.code||'erreur')+').',true)}});
@@ -532,7 +546,7 @@ function main(){
     if(!u){if(unsub)unsub();gate.hidden=false;who.hidden=true;return}
     gate.hidden=true;who.hidden=false;$('#me').textContent=u.email;window.EFF_CAN_BACKUP=(window.EFFUSION_ADMINS||['kentmutabazi@gmail.com']).map(x=>x.toLowerCase()).includes((u.email||'').toLowerCase());E.render();setSync('Chargement…');
     unsub=onSnapshot(collection(db,'effusion'),{includeMetadataChanges:true},snap=>{let ch=false;if(!snap.metadata.fromCache||!snap.empty)loaded=true;
-      snap.docChanges().forEach(c=>{if(c.type==='removed')return;const d=c.doc.data().d;if(typeof d!=='string'||last[c.doc.id]===d)return;last[c.doc.id]=d;try{E.set(c.doc.id,JSON.parse(d));ch=true}catch(x){}});
+      snap.docChanges().forEach(c=>{if(c.doc.id.startsWith('ph_')){const pid=c.doc.id.slice(3);const d=c.type==='removed'?null:c.doc.data().d;if(last[c.doc.id]!==d){last[c.doc.id]=d;E.setPhoto(pid,d);ch=true}return}if(c.type==='removed')return;const d=c.doc.data().d;if(typeof d!=='string'||last[c.doc.id]===d)return;last[c.doc.id]=d;try{E.set(c.doc.id,JSON.parse(d));ch=true}catch(x){}});
       if(first&&!snap.metadata.fromCache){first=false;if(snap.empty)E.toast('Base vide : importe tes données (Accueil → Importer des données)')}
       if(ch)safeRender();
       setSync(snap.metadata.hasPendingWrites?'Enregistrement…':snap.metadata.fromCache?'Hors ligne · données de ce téléphone':'Synchronisé ✓')},
